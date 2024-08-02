@@ -6,8 +6,7 @@ services:
     build:
       context: ..
       dockerfile: ./.container/mssql.Dockerfile
-#    restart: always
-#    user: root
+    restart: always
     ports:
       - 1433:1433
     environment:
@@ -18,9 +17,12 @@ services:
       - MSSQL_USER=${MSSQL_USER:-.}
       - MSSQL_PASS=${MSSQL_PASS:-.}
       - MSSQL_DB=${MSSQL_DB:-.}
+      - MSSQL_SCHEMA=${MSSQL_SCHEMA:-.}
     healthcheck:
       # NOTE: replace `mssql-tools` to `mssql-tools18` on this image version.
-      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P ${MSSQL_SA_PASS:-.} -C -Q 'SELECT 1' || exit 1" ]
+      test:
+        - "CMD-SHELL"
+        - "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P ${MSSQL_SA_PASS:-.} -C -Q 'SELECT 1' || exit 1"
       interval: 15s
       retries: 10
       start_period: 10s
@@ -29,27 +31,6 @@ services:
       - warehouse_network
     volumes:
       - ../mnt/mssql:/var/opt/mssql/data
-
-#  mssql.init:
-#    container_name: mssql_init
-#    image: mcr.microsoft.com/mssql/server:2022-latest
-#    environment:
-#      MSSQL_USER: ${MSSQL_USER:-.}
-#      MSSQL_PASS: ${MSSQL_PASS:-.}
-#    volumes:
-#      - ../scripts/mssql-init:/docker-entrypoint-initdb.d
-#    depends_on:
-#      mssql:
-#        condition: service_healthy
-#    networks:
-#      - warehouse_network
-#    command: >
-#      # FIXME: cmd `envsubst` does not found.
-#      envsubst docker-entrypoint-initdb.d/init_user.sql;
-#      bash -c '
-#      /opt/mssql-tools18/bin/sqlcmd -S mssql -U sa -P ${MSSQL_SA_PASS:-.} -C -d master -i docker-entrypoint-initdb.d/init_user.sql;
-#      echo "All initialize statement done!!!";
-#      '
 
 networks:
   warehouse_network:

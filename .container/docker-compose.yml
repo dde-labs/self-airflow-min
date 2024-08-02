@@ -9,6 +9,7 @@ x-airflow-common:
     AIRFLOW_CONFIG: '/opt/airflow/airflow.cfg'
     AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_WEBSERVER_SECRET_KEY:-}
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW_DB_CONN:-}
+    AIRFLOW_CONN_MSSQL_DEFAULT: ${MSSQL_AIRFLOW_CONN:-}
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/tests:/opt/airflow/tests
@@ -69,6 +70,8 @@ services:
       POSTGRES_USER: ${AIRFLOW_DB_USER:-airflow}
       POSTGRES_PASSWORD: ${AIRFLOW_DB_PASS:-airflow}
       POSTGRES_DB: ${AIRFLOW_DB_DB:-airflow}
+    ports:
+      - "5432:5432"
     volumes:
       - ../mnt/postgres-airflow:/var/lib/postgresql/data
     healthcheck:

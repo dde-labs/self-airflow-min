@@ -1,0 +1,8 @@
+---
+stream_id: "S_AD_D"
+process_groups:
+  - priority: 1
+    id: "PG_TEST_PROCESS_GROUP_D"
+    processes:
+      - priority: 1
+        id: "P_TEST_PROCESS_D_99"
