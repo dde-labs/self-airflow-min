@@ -1,6 +1,6 @@
-import pendulum as pm
 import logging
 
+import pendulum as pm
 from airflow.decorators import dag, task
 from airflow.models import Param
 from airflow.models.taskinstance import TaskInstance

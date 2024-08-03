@@ -1,7 +1,8 @@
 # Self: Airflow Minimal
 
-This project implements **Airflow** for Production grade that does not use any 
-Operator.
+Self Sandbox for create the best practice of Airflow with minimal generator DAG
+concept.
+I will implement it for the production grade that does not use any operator.
 
 > [!NOTE]
 > I will use Docker on WSL2 to provision the Airflow on my local machine.
@@ -37,7 +38,6 @@ MSSQL_AIRFLOW_CONN='{
     "port": 1433,
     "schema": "<schema>"
 }'
-
 ```
 
 ### Services
@@ -59,3 +59,19 @@ docker compose -f ./.container/docker-compose.yml --env-file .env up -d
 On the `mssql`, you can access this database with `sa` user.
 
 ## Getting Started
+
+### Process Template
+
+The template for the DAG generator that use for an input will store in `./dags/conf` 
+directory.
+
+```yaml
+stream_id: "<stream-name>"
+process_groups:
+    - priority: 1
+      id: <process-group-name>
+      processes:
+        - priority: 1
+          id: <process-name>
+          ...
+```
