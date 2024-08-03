@@ -20,7 +20,9 @@ def read_stream(file: str) -> tuple[Optional[str], Stream]:
 
 if __name__ == '__main__':
     current_dir = Path(__file__).parent
-    dag_id, config = read_stream(file=current_dir / '../conf/s_ad_d.yaml')
+    dag_id, config = read_stream(
+        file=current_dir / '../../dags/conf/s_ad_d.yaml'
+    )
     first_groups = config.process_groups[0].processes
     print(first_groups)
     values = set(map(lambda x: x.priority, first_groups))

@@ -18,6 +18,7 @@ class Process(BaseModel):
     source: Source
     target: Target
     active: bool = Field(default=True)
+    sla: int = Field(default=30)
 
 
 class ProcessGroup(BaseModel):

@@ -10,8 +10,9 @@ from airflow.models import Param
 from airflow.operators.empty import EmptyOperator
 from airflow.utils.helpers import chain
 
-from dags.utils.common import read_stream
 from dags.gen.gen_process import gen_process
+from plugins.utils.sla import sla_callback
+from plugins.utils.common import read_stream
 from plugins.models import Process
 
 
@@ -35,18 +36,36 @@ for dag_id, config in (
     dag_doc: str = f"""
     ## Stream Common: `{dag_id}`
     
-    This dag will generate from generator function.
+    This dag will generate from generator function. If you want to add or delete
+    a dag from this generator process, you can navigate to `dags/conf` dir and
+    delete or add a `.yaml` file.
+    
+    ### Getting Started
     
     Parameters:
-    - mode: A stream running mode that should be only one value in [N, R, F]
+    - mode: A stream running mode that should be only one in [`N`, `R`, `F`]
     """
 
     @dag(
+        # NOTE: Basic params
         dag_id=dag_id,
         start_date=pm.datetime(2024, 7, 31),
         schedule=None,
         catchup=False,
-        params={"mode": Param("N", type="string")},
+        # NOTE: UI params
+        description=f"Generated stream DAG: {dag_id}",
+        tags=["stream", "auto-gen"],
+        # NOTE: Other params
+        params={
+            "mode": Param(
+                default="N",
+                enum=["N", "F", "R"],
+                type="string",
+                section="Important Params",
+                description="Enter your stream running mode.",
+            ),
+        },
+        sla_miss_callback=sla_callback,
         default_args=default_args,
         doc_md=dag_doc,
     )

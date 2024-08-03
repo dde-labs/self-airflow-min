@@ -2,6 +2,7 @@
 The file will use for generate the Process function from a config template
 """
 import logging
+from datetime import timedelta
 from typing import Any
 
 from airflow.decorators import task
@@ -41,7 +42,9 @@ def gen_process(process: Process, extra: dict[str, Any] | None = None):
     if (process_gateway := TYPE_SUPPORTED.get(process.type)) is None:
         raise ValueError(f"Process Type {process.type} does not support.")
 
-    @task()
+    @task(
+        sla=timedelta(minutes=process.sla),
+    )
     def process_task():
         context = get_current_context()
         print(context["params"])
