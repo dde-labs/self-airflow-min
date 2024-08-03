@@ -62,8 +62,8 @@ On the `mssql`, you can access this database with `sa` user.
 
 ### Process Template
 
-The template for the DAG generator that use for an input will store in `./dags/conf` 
-directory.
+The template for the DAG generator that use for an input will store in the 
+`./dags/conf` directory.
 
 ```yaml
 stream_id: "<stream-name>"

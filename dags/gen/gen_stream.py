@@ -1,17 +1,20 @@
+"""
+The file will use for generate the DAG from a config template
+"""
 from datetime import timedelta
 from pathlib import Path
 
 import pendulum as pm
-from airflow.decorators import dag, task, task_group
+from airflow.decorators import dag, task_group
 from airflow.models import Param
-from airflow.operators.python import get_current_context
-from airflow.utils.dag_parsing_context import get_parsing_context
+from airflow.operators.empty import EmptyOperator
 from airflow.utils.helpers import chain
 
 from dags.utils.common import read_stream
+from dags.gen.gen_process import gen_process
+from plugins.models import Process
 
 
-current_dag_id = get_parsing_context().dag_id
 current_dir: Path = Path(__file__).parent
 default_args = {
     "owner": "airflow",
@@ -26,11 +29,17 @@ for dag_id, config in (
     read_stream(file=current_dir / f'../conf/{name}.yaml')
     for name in ('s_ad_d', 's_fm_d', )
 ):
-    if not config:
+    if dag_id is None:
         continue
-    elif current_dag_id is not None and current_dag_id != dag_id:
-        # NOTE: skip generation of non-selected DAG
-        continue
+
+    dag_doc: str = f"""
+    ## Stream Common: `{dag_id}`
+    
+    This dag will generate from generator function.
+    
+    Parameters:
+    - mode: A stream running mode that should be only one value in [N, R, F]
+    """
 
     @dag(
         dag_id=dag_id,
@@ -39,43 +48,42 @@ for dag_id, config in (
         catchup=False,
         params={"mode": Param("N", type="string")},
         default_args=default_args,
+        doc_md=dag_doc,
     )
     def stream_common():
-        f"""# Stream Common for {dag_id}"""
-
         # NOTE: Process Group should running with sequential.
         process_task_groups: list = []
         for process_group in sorted(
-            config.get("process_groups", []),
-            key=lambda x: x.get('priority', 99),
+            config.process_groups,
+            key=lambda x: x.priority,
         ):
-
-            @task_group(group_id=process_group["id"])
+            @task_group(group_id=process_group.id)
             def process_task_group():
 
                 # NOTE: Process should running with parallel or concurrency
-                #   limit.
-                processes: list = process_group.get("processes", [])
+                #   limit in the same group priority.
+                processes: list[Process] = process_group.processes.copy()
                 if not processes:
-                    # FIXME: it will use empty operator for this case.
-                    raise ValueError("Process Group does not set process")
+                    EmptyOperator(
+                        task_id=f"EMPTY_{process_group.id}"
+                    )
+                    return
 
                 priority_tasks: list = []
                 for priority in (
-                    (y for y in processes if y.get('priority', 99) == p)
-                    for p in set(
-                        map(lambda x: x.get('priority', 99), processes)
-                    )
+                    (y for y in processes if y.priority == p)
+                    for p in set(map(lambda x: x.priority, processes))
                 ):
                     process_tasks: list = []
                     for process in priority:
 
-                        @task(task_id=process["id"])
-                        def process_task():
-                            # NOTE: Process code will implement here
-                            context = get_current_context()
-                            print(context["params"])
-                            print(f"Start process type: {process['type']}")
+                        process_task = (
+                            gen_process(process=process, extra={})
+                            .override(
+                                pool='default_pool',
+                                task_id=process.id,
+                            )
+                        )
 
                         process_tasks.append(process_task())
 
