@@ -1,0 +1,9 @@
+---
+batch_id: 'BATCH_1'
+streams:
+  - id: "S_AD_D"
+    alias: ad
+  - id: "S_FM_D"
+    alias: fm
+deps: |
+  ad >> fm

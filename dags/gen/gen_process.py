@@ -55,4 +55,7 @@ def gen_process(process: Process, extra: dict[str, Any] | None = None):
             extra=context.get("params", {}) | (extra or {}),
         )
 
-    return process_task
+    return process_task.override(
+        pool='default_pool',
+        task_id=process.id,
+    )

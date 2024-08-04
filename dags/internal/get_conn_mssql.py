@@ -22,7 +22,7 @@ except ImportError:
     catchup=False,
     # NOTE: UI params
     description="Get connection from mssql server that was provision on local",
-    tags=["example"],
+    tags=["internal"],
     # NOTE: Jinja params
     # NOTE: Other params
     default_args={
@@ -34,13 +34,13 @@ except ImportError:
     dag_display_name="get_conn_mssql",
 )
 def get_conn_mssql():
-    """# Get Connection Mssql
+    """## Get Connection Mssql
 
     This dag use for demo functional use case for getting connection to MSSQL
     and it will use to test passing parameters to dag.
     """
 
-    @task(task_id='echo_connection_task', multiple_outputs=True)
+    @task(task_id='echo_connection_task')
     def echo_connection_hook():
         mssql_hook = MsSqlHook(mssql_conn_id="mssql_default", schema="DWHCNTL")
         logging.info(mssql_hook.schema)
@@ -60,10 +60,13 @@ def get_conn_mssql():
         mssql_hook = MsSqlHook(mssql_conn_id=conn_id, schema=schema)
         mssql_hook.test_connection()
 
+        # Task Instance attributes
         logging.info(f"start_date: {task_instance.start_date}")
         logging.info(f"end_date: {task_instance.end_date}")
         logging.info(f"Run ID: {task_instance.run_id}")
         logging.info(f"Duration: {task_instance.duration}")
+
+        # DAG Run attributes
         logging.info(f"DAG Run queued at: {dag_run.queued_at}")
 
         context = get_current_context()
@@ -72,8 +75,8 @@ def get_conn_mssql():
 
     echo_conn_task = echo_connection_hook()
     variable_task(
-        echo_conn_task["conn_id"],
-        echo_conn_task["schema"],
+        conn_id=echo_conn_task['conn_id'],
+        schema=echo_conn_task['schema'],
     )
 
 

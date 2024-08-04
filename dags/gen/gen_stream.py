@@ -6,13 +6,13 @@ from pathlib import Path
 
 import pendulum as pm
 from airflow.decorators import dag, task_group
-from airflow.models import Param
+from airflow.models import Param, DagRun, TaskInstance
 from airflow.operators.empty import EmptyOperator
 from airflow.utils.helpers import chain
 
 from dags.gen.gen_process import gen_process
 from plugins.utils.sla import sla_callback
-from plugins.utils.common import read_stream
+from plugins.utils.common import read_stream, read_deployment
 from plugins.models import Process
 
 
@@ -26,11 +26,15 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
+
+streams: dict[str, type[DagRun]] = {}
 for dag_id, config in (
     read_stream(file=current_dir / f'../conf/{name}.yaml')
-    for name in ('s_ad_d', 's_fm_d', )
+    for name in (
+        read_deployment(current_dir / f'../conf/deployment.yaml').streams
+    )
 ):
-    if dag_id is None:
+    if dag_id is None or config.stream_id == 'EMPTY':
         continue
 
     dag_doc: str = f"""
@@ -73,51 +77,46 @@ for dag_id, config in (
         # NOTE: Process Group should running with sequential.
         process_task_groups: list = []
         for process_group in sorted(
-            config.process_groups,
-            key=lambda x: x.priority,
+            config.process_groups, key=lambda x: x.priority
         ):
-            @task_group(group_id=process_group.id)
+
+            @task_group(
+                group_id=process_group.id,
+                tooltip="This task group is a process grouping!!!",
+            )
             def process_task_group():
 
                 # NOTE: Process should running with parallel or concurrency
                 #   limit in the same group priority.
-                processes: list[Process] = process_group.processes.copy()
-                if not processes:
-                    EmptyOperator(
-                        task_id=f"EMPTY_{process_group.id}"
-                    )
+                priorities: list[list[Process]] = process_group.priorities()
+                if not priorities:
+                    EmptyOperator(task_id=f"EMPTY_{process_group.id}")
                     return
 
                 priority_tasks: list = []
-                for priority in (
-                    (y for y in processes if y.priority == p)
-                    for p in set(map(lambda x: x.priority, processes))
-                ):
-                    process_tasks: list = []
+                for priority in priorities:
+
+                    process_tasks: list[TaskInstance] = []
                     for process in priority:
-
-                        process_task = (
-                            gen_process(process=process, extra={})
-                            .override(
-                                pool='default_pool',
-                                task_id=process.id,
-                            )
-                        )
-
+                        process_task = gen_process(process=process, extra={})
                         process_tasks.append(process_task())
 
                     priority_tasks.append(
                         (
-                            process_tasks
+                            process_tasks.copy()
                             if len(process_tasks) > 1
                             else process_tasks[0]
                         )
                     )
+                    del process_tasks
 
                 chain(*priority_tasks)
+                del priority_tasks
 
             process_task_groups.append(process_task_group())
 
         chain(*process_task_groups)
+        del process_task_groups
 
-    stream_common()
+    # NOTE: Keep the stream DAG to list for reuse with sub-DAG
+    streams[dag_id] = stream_common()
