@@ -1,17 +1,18 @@
+import traceback
+
 from plugins.operators.ms_teams_webhook import MSTeamsWebhookOperator
 from plugins.hooks.ms_teams_webhook import MSTeamsWebhookHook
 from airflow.operators.python import get_current_context
-import traceback
 
 
 def dag_triggered_callback(context, **kwargs):
     log_url = context.get("task_instance").log_url
     teams_msg = f"""
-            DAG has been triggered.
-            Task: {context.get('task_instance').task_id}  
-            DAG: {context.get('task_instance').dag_id} 
-            Execution Time: {context.get('execution_date')}  
-            """
+        DAG has been triggered.
+        Task: {context.get('task_instance').task_id}  
+        DAG: {context.get('task_instance').dag_id} 
+        Execution Time: {context.get('execution_date')}  
+        """
     teams_notification = MSTeamsWebhookOperator(
         task_id="ms_teams_callback",
         trigger_rule="all_done",
@@ -27,11 +28,11 @@ def dag_triggered_callback(context, **kwargs):
 def dag_success_callback(context, **kwargs):
     log_url = context.get("task_instance").log_url
     teams_msg = f"""
-            DAG has succeeded.
-            Task: {context.get('task_instance').task_id}  
-            DAG: {context.get('task_instance').dag_id} 
-            Execution Time: {context.get('execution_date')}  
-            """
+        DAG has succeeded.
+        Task: {context.get('task_instance').task_id}  
+        DAG: {context.get('task_instance').dag_id} 
+        Execution Time: {context.get('execution_date')}  
+        """
     teams_notification = MSTeamsWebhookOperator(
         task_id="ms_teams_callback",
         trigger_rule="all_done",
@@ -47,11 +48,11 @@ def dag_success_callback(context, **kwargs):
 def success_callback(context, **kwargs):
     log_url = context.get("task_instance").log_url
     teams_msg = f"""
-            Task has succeeded. 
-            Task: {context.get('task_instance').task_id}  
-            DAG: {context.get('task_instance').dag_id} 
-            Execution Time: {context.get('execution_date')}  
-            """
+        Task has succeeded. 
+        Task: {context.get('task_instance').task_id}  
+        DAG: {context.get('task_instance').dag_id} 
+        Execution Time: {context.get('execution_date')}  
+        """
     teams_notification = MSTeamsWebhookOperator(
         task_id="ms_teams_callback",
         trigger_rule="all_done",
@@ -68,9 +69,11 @@ def failure_callback(context, **kwargs):
     log_url = context.get("task_instance").log_url
     exception = context.get('exception')
     formatted_exception = ''.join(
-        traceback.format_exception(etype=type(exception),
-                                   value=exception,
-                                   tb=exception.__traceback__)
+        traceback.format_exception(
+            etype=type(exception),
+            value=exception,
+            tb=exception.__traceback__
+        )
     ).strip()
     teams_msg = f"""
             Task has failed. 
@@ -95,9 +98,11 @@ def retry_callback(context, **kwargs):
     log_url = context.get("task_instance").log_url
     exception = context.get('exception')
     formatted_exception = ''.join(
-        traceback.format_exception(etype=type(exception),
-                                   value=exception,
-                                   tb=exception.__traceback__)
+        traceback.format_exception(
+            etype=type(exception),
+            value=exception,
+            tb=exception.__traceback__
+        )
     ).strip()
     teams_msg = f"""
             Task is retrying. 
@@ -140,7 +145,9 @@ def python_operator_callback(**kwargs):
     return teams_notification.execute(context)
 
 
-def sla_miss_callback(dag, task_list, blocking_task_list, slas, blocking_tis, *args, **kwargs):
+def sla_miss_callback(
+    dag, task_list, blocking_task_list, slas, blocking_tis, *args, **kwargs
+):
     dag_id = slas[0].dag_id
     task_id = slas[0].task_id
     execution_date = slas[0].execution_date.isoformat()

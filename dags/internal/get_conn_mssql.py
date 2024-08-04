@@ -29,7 +29,7 @@ except ImportError:
         "retries": 2,
     },
     params={
-        "asat_dt": Param("{{ ds }}", type="string"),
+        "table": Param("tmp_table_name", type="string"),
     },
     dag_display_name="get_conn_mssql",
 )
