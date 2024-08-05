@@ -3,3 +3,7 @@ streams:
   - s_fm_d
 batches:
   - batch_1
+processes:
+  - p_ad_process_1_1
+  - p_ad_process_1_2
+  - p_ad_process_2_1

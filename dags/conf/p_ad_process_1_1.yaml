@@ -1,0 +1,9 @@
+---
+process_id: "P_AD_PROCESS_1_1_D_99"
+type: 1
+source:
+  schema: "SRC_SCHEMA"
+  table: "SRC_TABLE"
+target:
+  schema: "TGT_SCHEMA"
+  table: "TGT_TABLE"

@@ -1,19 +1,35 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
-class Source(BaseModel):
-    schema: str | None = Field(default=None)
-    table: str
+class CustomModel(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    def __getattr__(self, item):
+        for field, meta in self.model_fields.items():
+            if meta.alias == item:
+                return getattr(self, field)
+        return super().__getattr__(item)
 
 
-class Target(BaseModel):
-    schema: str | None = Field(default=None)
-    table: str
+class Source(CustomModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    schema_name: str | None = Field(default=None, alias='schema')
+    table_name: str = Field(default=None, alias='table')
 
 
-class Process(BaseModel):
+class Target(CustomModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    schema_name: str | None = Field(default=None, alias='schema')
+    table_name: str = Field(default=None, alias='table')
+
+
+class Process(CustomModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     priority: int = Field(default=99)
-    id: str
+    id: str = Field(alias='process_id')
     type: int
     source: Source
     target: Target
@@ -21,9 +37,11 @@ class Process(BaseModel):
     sla: int = Field(default=30)
 
 
-class ProcessGroup(BaseModel):
+class ProcessGroup(CustomModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     priority: int = Field(default=99)
-    id: str
+    id: str = Field(alias='process_group_id')
     processes: list[Process] = Field(default_factory=list)
     active: bool = Field(default=True)
 
@@ -40,26 +58,29 @@ class ProcessGroup(BaseModel):
         ]
 
 
-class Stream(BaseModel):
-    stream_id: str
+class Stream(CustomModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str = Field(alias='stream_id')
     process_groups: list[ProcessGroup] = Field(default_factory=list)
     active: bool = Field(default=True)
 
 
-class StreamBatch(BaseModel):
+class StreamBatch(CustomModel):
     id: str
     alias: str
 
 
-class Batch(BaseModel):
+class Batch(CustomModel):
     batch_id: str
     streams: list[StreamBatch] = Field(default_factory=list)
     deps: str | None = Field(default=None)
 
 
-class Deployment(BaseModel):
+class Deployment(CustomModel):
     streams: list[str] = Field(default_factory=list)
     batches: list[str] = Field(default_factory=list)
+    processes: list[str] = Field(default_factory=list)
 
 
 if __name__ == '__main__':
@@ -92,6 +113,20 @@ if __name__ == '__main__':
         ]
     })
     print(data)
+
+    process = Process.model_validate(obj={
+        'process_id': 'P_AD_PROCESS_1_1_D_99',
+        'type': 1,
+        'source': {
+            'schema': "SRC_SCHEMA",
+            'table': "SRC_TABLE",
+        },
+        'target': {
+            'schema': "SRC_SCHEMA",
+            'table': "SRC_TABLE",
+        },
+    })
+    print(process)
 
     deploy = Deployment.model_validate(obj={
         'streams': [

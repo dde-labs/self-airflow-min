@@ -23,8 +23,8 @@ process_groups:
           schema: "TGT_SCHEMA"
           table: "TGT_TABLE"
       - priority: 2
-        id: "P_AD_PROCESS_1_3_D_99"
-        type: 1
+        id: "P_AD_PROCESS_2_1_D_99"
+        type: 2
         source:
           schema: "SRC_SCHEMA"
           table: "SRC_TABLE"

@@ -29,7 +29,7 @@ batches: dict[str, type[DagRun]] = {}
 for dag_id, config in (
     read_batch(file=current_dir / f'../conf/{name}.yaml')
     for name in (
-        read_deployment(current_dir / f'../conf/deployment.yaml').batches
+        read_deployment(current_dir / '../conf/deployment.yaml').batches
     )
 ):
     if dag_id is None or config.batch_id == 'EMPTY':

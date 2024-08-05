@@ -1,5 +1,6 @@
 services:
 
+  # Docker image ...
   # Ref: https://hub.docker.com/r/microsoft/mssql-server
   mssql:
     container_name: mssql

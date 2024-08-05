@@ -34,7 +34,7 @@ for dag_id, config in (
         read_deployment(current_dir / f'../conf/deployment.yaml').streams
     )
 ):
-    if dag_id is None or config.stream_id == 'EMPTY':
+    if dag_id is None or config.id == 'EMPTY':
         continue
 
     dag_doc: str = f"""
