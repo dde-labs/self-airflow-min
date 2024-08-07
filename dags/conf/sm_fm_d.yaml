@@ -1,5 +1,5 @@
 ---
-stream_id: "S_FM_D"
+stream_id: "SM_FM_D"
 process_groups:
   - priority: 1
     id: "PG_FM_PROCESS_GROUP_1_D"

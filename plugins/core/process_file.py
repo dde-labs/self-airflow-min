@@ -21,8 +21,8 @@ def process_file(
         logging.info(
             f"... Loading data from {process.source} to {process.target}"
         )
-
     return [
         EmptyOperator(task_id="start"),
         process_task.override(task_id='Main_Task')(),
+        EmptyOperator(task_id="end"),
     ]

@@ -8,12 +8,13 @@ import pendulum as pm
 from airflow.decorators import dag, task_group
 from airflow.models import Param, DagRun, TaskInstance
 from airflow.operators.empty import EmptyOperator
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.utils.helpers import chain
 
+from dags.gen.gen_manual_process import gen_process
 from plugins.utils.sla import sla_callback
 from plugins.utils.common import read_stream, read_deployment
 from plugins.models import Process
+
 
 current_dir: Path = Path(__file__).parent
 default_args = {
@@ -25,11 +26,12 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
+
 streams: dict[str, type[DagRun]] = {}
 for dag_id, config in (
     read_stream(file=current_dir / f'../conf/{name}.yaml')
     for name in (
-        read_deployment(current_dir / '../conf/deployment.yaml').streams
+        read_deployment(current_dir / '../conf/deployment.yaml').manual_streams
     )
 ):
     if dag_id is None or config.id == 'EMPTY':
@@ -37,17 +39,16 @@ for dag_id, config in (
 
     dag_doc: str = f"""
     ## Stream Common: `{dag_id}`
-
+    
     This dag will generate from generator function. If you want to add or delete
     a dag from this generator process, you can navigate to `dags/conf` dir and
     delete or add a `.yaml` file.
-
+    
     ### Getting Started
-
+    
     Parameters:
     - mode: A stream running mode that should be only one in [`N`, `R`, `F`]
     """
-
 
     @dag(
         # NOTE: Basic params
@@ -97,15 +98,8 @@ for dag_id, config in (
 
                     process_tasks: list[TaskInstance] = []
                     for process in priority:
-
-                        trigger_process = TriggerDagRunOperator(
-                            task_id=process.id.lower(),
-                            trigger_dag_id=process.id,
-                            wait_for_completion=True,
-                            deferrable=False,
-                        )
-
-                        process_tasks.append(trigger_process)
+                        process_task = gen_process(process=process, extra={})
+                        process_tasks.append(process_task())
 
                     priority_tasks.append(
                         (
@@ -123,7 +117,6 @@ for dag_id, config in (
 
         chain(*process_task_groups)
         del process_task_groups
-
 
     # NOTE: Keep the stream DAG to list for reuse with sub-DAG
     streams[dag_id] = stream_common()

@@ -6,40 +6,12 @@ process_groups:
     processes:
       - priority: 1
         id: "P_AD_PROCESS_1_1_D_99"
-        type: 1
-        source:
-          schema: "SRC_SCHEMA"
-          table: "SRC_TABLE"
-        target:
-          schema: "TGT_SCHEMA"
-          table: "TGT_TABLE"
       - priority: 1
         id: "P_AD_PROCESS_1_2_D_99"
-        type: 1
-        source:
-          schema: "SRC_SCHEMA"
-          table: "SRC_TABLE"
-        target:
-          schema: "TGT_SCHEMA"
-          table: "TGT_TABLE"
       - priority: 2
-        id: "P_AD_PROCESS_2_1_D_99"
-        type: 2
-        source:
-          schema: "SRC_SCHEMA"
-          table: "SRC_TABLE"
-        target:
-          schema: "TGT_SCHEMA"
-          table: "TGT_TABLE"
+        id: "P_AD_PROCESS_1_3_D_99"
   - priority: 2
     id: "PG_AD_PROCESS_GROUP_2_D"
     processes:
       - priority: 1
         id: "P_AD_PROCESS_2_1_D_99"
-        type: 1
-        source:
-          schema: "SRC_SCHEMA"
-          table: "SRC_TABLE"
-        target:
-          schema: "TGT_SCHEMA"
-          table: "TGT_TABLE"

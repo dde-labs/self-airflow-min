@@ -1,3 +1,6 @@
+manual_streams:
+  - sm_ad_d
+  - sm_fm_d
 streams:
   - s_ad_d
   - s_fm_d
@@ -6,4 +9,5 @@ batches:
 processes:
   - p_ad_process_1_1
   - p_ad_process_1_2
+  - p_ad_process_1_3
   - p_ad_process_2_1

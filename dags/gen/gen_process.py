@@ -1,61 +1,62 @@
-"""
-The file will use for generate the Process function from a config template
-"""
-import logging
-from datetime import timedelta
-from typing import Any
+from pathlib import Path
+from datetime import UTC, datetime, timedelta
 
-from airflow.decorators import task
-from airflow.operators.python import get_current_context
+from airflow.models import DagRun
 
-from plugins.models import Process, Source, Target
+import pendulum as pm
+from airflow.decorators import dag
+from airflow.models import Param
+from airflow.utils.helpers import chain
 
-
-def process_type_1(
-    source: Source,
-    target: Target,
-    extra: dict[str, Any],
-):
-    logging.info("Start process type 1")
-    logging.info(f"... Loading data from {source} to {target}")
-    logging.info(f"... Extra params: {extra}")
+from plugins.core.gateway import process_gateway
+from plugins.utils.common import read_process, read_deployment
 
 
-def process_type_2(
-    source: Source,
-    target: Target,
-    extra: dict[str, Any],
-):
-    logging.info("Start process type 2")
-    logging.info(f"... Loading data from {source} to {target}")
-    logging.info(f"... Extra params: {extra}")
-
-
-TYPE_SUPPORTED: dict[int, callable] = {
-    1: process_type_1,
-    2: process_type_2,
+current_dir: Path = Path(__file__).parent
+default_args = {
+    "owner": "airflow",
+    "depends_on_past": False,
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
 }
 
 
-def gen_process(process: Process, extra: dict[str, Any] | None = None):
-    """Generator process"""
-    if (process_gateway := TYPE_SUPPORTED.get(process.type)) is None:
-        raise ValueError(f"Process Type {process.type} does not support.")
-
-    @task(
-        sla=timedelta(minutes=process.sla),
+processes: dict[str, type[DagRun]] = {}
+for dag_id, config in (
+    read_process(file=current_dir / f'../conf/{name}.yaml')
+    for name in (
+        read_deployment(current_dir / '../conf/deployment.yaml').processes
     )
-    def process_task():
-        context = get_current_context()
-        print(context["params"])
-        print(f"Start process type: {process.type}")
-        process_gateway(
-            source=process.source,
-            target=process.target,
-            extra=context.get("params", {}) | (extra or {}),
-        )
+):
+    if dag_id is None or config.id == 'EMPTY':
+        continue
 
-    return process_task.override(
-        pool='default_pool',
-        task_id=process.id,
+    @dag(
+        # NOTE: Basic params
+        dag_id=dag_id,
+        start_date=pm.datetime(2024, 7, 31),
+        schedule=None,
+        catchup=False,
+        # NOTE: UI params
+        description=f"Generated process DAG: {dag_id}",
+        tags=["process", "auto-gen"],
+        # NOTE: Other params
+        params={
+            "asat_dt": Param(
+                default=str(datetime.now(tz=UTC) - timedelta(days=90)),
+                type="string",
+                format="date-time",
+                section="Important Params",
+                description="Enter your override logical date that you want.",
+            ),
+        },
+        default_args=default_args,
     )
+    def process_common():
+        tasks = process_gateway(process=config)
+        chain(*tasks)
+
+
+    processes[dag_id] = process_common()

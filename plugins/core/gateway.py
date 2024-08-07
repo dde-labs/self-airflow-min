@@ -2,8 +2,8 @@ from typing import Union, Any
 
 from airflow.models import TaskInstance
 
-from plugins.processes.process_file import process_file
-from plugins.processes.process_db import process_db
+from plugins.core.process_file import process_file
+from plugins.core.process_db import process_db
 from plugins.models import Process
 
 

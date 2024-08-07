@@ -15,14 +15,14 @@ class Source(CustomModel):
     model_config = ConfigDict(populate_by_name=True)
 
     schema_name: str | None = Field(default=None, alias='schema')
-    table_name: str = Field(default=None, alias='table')
+    table_name: str | None = Field(default=None, alias='table')
 
 
 class Target(CustomModel):
     model_config = ConfigDict(populate_by_name=True)
 
     schema_name: str | None = Field(default=None, alias='schema')
-    table_name: str = Field(default=None, alias='table')
+    table_name: str | None = Field(default=None, alias='table')
 
 
 class Process(CustomModel):
@@ -30,9 +30,9 @@ class Process(CustomModel):
 
     priority: int = Field(default=99)
     id: str = Field(alias='process_id')
-    type: int
-    source: Source
-    target: Target
+    type: int = Field(default=99)
+    source: Source = Field(default_factory=Source)
+    target: Target = Field(default_factory=Target)
     active: bool = Field(default=True)
     sla: int = Field(default=30)
 
@@ -78,6 +78,7 @@ class Batch(CustomModel):
 
 
 class Deployment(CustomModel):
+    manual_streams: list[str] = Field(default_factory=list)
     streams: list[str] = Field(default_factory=list)
     batches: list[str] = Field(default_factory=list)
     processes: list[str] = Field(default_factory=list)

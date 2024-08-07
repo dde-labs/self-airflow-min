@@ -12,9 +12,9 @@ services:
       - 1433:1433
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASS=${MSSQL_SA_PASS:-.}
       - MSSQL_COLLATION=SQL_Latin1_General_CP1_CI_AS
       - MSSQL_PID=Standard
+      - MSSQL_SA_PASS=${MSSQL_SA_PASS:-.}
       - MSSQL_USER=${MSSQL_USER:-.}
       - MSSQL_PASS=${MSSQL_PASS:-.}
       - MSSQL_DB=${MSSQL_DB:-.}
