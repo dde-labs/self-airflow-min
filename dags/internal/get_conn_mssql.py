@@ -40,7 +40,7 @@ def get_conn_mssql():
     and it will use to test passing parameters to dag.
     """
 
-    @task(task_id='echo_connection_task')
+    @task(task_id='echo_connection_task', multiple_outputs=True)
     def echo_connection_hook():
         mssql_hook = MsSqlHook(mssql_conn_id="mssql_default", schema="DWHCNTL")
         logging.info(mssql_hook.schema)
@@ -50,7 +50,7 @@ def get_conn_mssql():
             "schema": "DWHCNTL",
         }
 
-    @task
+    @task()
     def variable_task(
         conn_id: str,
         schema: str,
