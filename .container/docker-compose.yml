@@ -150,4 +150,4 @@ services:
 networks:
   airflow:
     name: airflow
-    external: true
+#    external: true

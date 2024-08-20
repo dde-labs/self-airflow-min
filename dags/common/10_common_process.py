@@ -78,7 +78,11 @@ def process_common():
     )
     end = EmptyOperator(task_id='end')
 
-    start >> random_choice_instance
+    @task()
+    def get_run_id(**context):
+        print(context['dag_run'].run_id)
+
+    start >> get_run_id() >> random_choice_instance
 
     for dag_id in process_mapping.values():
         t_label: str = dag_id.split("_")[-1].lower()
@@ -86,8 +90,10 @@ def process_common():
             t = TriggerDagRunOperator(
                 task_id=f'trigger-process-{t_label}',
                 trigger_dag_id=dag_id,
+                trigger_run_id="{{ run_id }}",
                 wait_for_completion=True,
                 deferrable=False,
+                reset_dag_run=True,
                 conf={
                     "source": "source-name",
                     "asat_dt": "{{ params['asat_dt'] }}",
@@ -96,7 +102,7 @@ def process_common():
         else:
             t = EmptyOperator(task_id=f'trigger-process-{t_label}')
 
-        random_choice_instance >> Label(t_label) >> t >> join
+        random_choice_instance >> Label(t_label.upper()) >> t >> join
 
     join >> end
 

@@ -23,9 +23,14 @@ default_args = {
     start_date=pm.datetime(2024, 8, 8),
     schedule=None,
     catchup=False,
-    description="Common DAG for Stage to Curated",
+    description="Common DAG for move data from Staging to Curated",
     tags=["process", "common"],
     params={
+        "source": Param(
+            type="string",
+            section="Important Params",
+            description="Enter your process name.",
+        ),
         "asat_dt": Param(
             default=str(pm.now(tz='Asia/Bangkok') - timedelta(days=1)),
             type="string",
