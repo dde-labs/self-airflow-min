@@ -19,17 +19,23 @@ default_args = {
 
 
 @dag(
-    dag_id="20_PROCESS_DB",
+    dag_id="20_PROCESS_TYPE3",
     start_date=pm.datetime(2024, 8, 8),
     schedule=None,
     catchup=False,
     description="Common DAG for DB process",
     tags=["process", "common"],
     params={
-        "source": Param(
-            type="string",
+        "process": Param(
+            {
+                "connection_id": "database-connection-id",
+                "source_schema_name": "source-schema-name",
+            },
+            type=["object", "null"],
             section="Important Params",
-            description="Enter your process name.",
+            description=(
+                "Enter your process data that want to start process database."
+            ),
         ),
         "asat_dt": Param(
             default=str(pm.now(tz='Asia/Bangkok') - timedelta(days=1)),
@@ -41,18 +47,16 @@ default_args = {
     },
     default_args=default_args,
 )
-def process_db():
+def process_gbq():
     start = EmptyOperator(task_id='start')
 
     @task()
-    def extract_db():
+    def extract_gbq():
         context = get_current_context()
         logging.info(context["params"])
         logging.info(context["ds"])
 
-    prepare_db = EmptyOperator(task_id='prepare-db')
-
-    start >> extract_db() >> prepare_db
+    start >> extract_gbq()
 
 
-process_db()
+process_gbq()

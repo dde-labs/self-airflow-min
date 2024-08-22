@@ -26,10 +26,19 @@ default_args = {
     description="Common DAG for move data from Staging to Curated",
     tags=["process", "common"],
     params={
-        "source": Param(
-            type="string",
+        "process": Param(
+            {
+                "connection_id": "file-storage-connection-id",
+                "file": {
+                    "path": "file-path",
+                    "name": "file-dynamic-name",
+                }
+            },
+            type=["object", "null"],
             section="Important Params",
-            description="Enter your process name.",
+            description=(
+                "Enter your process data that want to move staging to curated."
+            ),
         ),
         "asat_dt": Param(
             default=str(pm.now(tz='Asia/Bangkok') - timedelta(days=1)),

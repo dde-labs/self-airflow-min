@@ -10,7 +10,7 @@ from airflow.models import Param, DagRun, TaskInstance
 from airflow.operators.empty import EmptyOperator
 from airflow.utils.helpers import chain
 
-from dags.gen.gen_manual_process import gen_process
+from dags_bk.gen.gen_manual_process import gen_process
 from plugins.utils.sla import sla_callback
 from plugins.utils.common import read_stream, read_deployment
 from plugins.models import Process
