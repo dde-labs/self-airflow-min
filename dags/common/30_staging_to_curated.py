@@ -59,7 +59,7 @@ def staging_to_curated():
         logging.info(context["params"])
         logging.info(context["ds"])
 
-    external_table = EmptyOperator(task_id='create-external-table')
+    external_table = EmptyOperator(task_id='create-external-table-gbq')
 
     start >> move_file_to_curated() >> external_table
 

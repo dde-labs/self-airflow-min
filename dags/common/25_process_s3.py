@@ -26,7 +26,7 @@ default_args = {
     start_date=pm.datetime(2024, 8, 8),
     schedule=None,
     catchup=False,
-    description="Common DAG for File process",
+    description="Common DAG for File on AWS S3",
     tags=["process", "common"],
     params={
         "process": Param(
@@ -60,7 +60,8 @@ def process_s3():
     @task.branch
     def switch_file_format(**context):
         file_format: str = (
-            context["params"]["process"].get("fi", {}).get("file_format", 'xlsx')
+            context["params"]["process"].get("fi", {}).get("file_format")
+            or 'empty'
         )
         if file_format not in ('xlsx', 'csv', 'json', ):
             # NOTE: raise failed without retry

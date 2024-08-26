@@ -1,6 +1,6 @@
 x-airflow-common:
   &airflow-common
-  image: app-airflow:latest
+#  image: app-airflow:latest
   build:
     context: ..
     dockerfile: ./.container/Dockerfile

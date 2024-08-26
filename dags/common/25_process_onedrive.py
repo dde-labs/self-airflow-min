@@ -26,7 +26,7 @@ default_args = {
     start_date=pm.datetime(2024, 8, 8),
     schedule=None,
     catchup=False,
-    description="Common DAG for File process",
+    description="Common DAG for File on Onedrive",
     tags=["process", "common"],
     params={
         "process": Param(
@@ -55,12 +55,15 @@ default_args = {
     render_template_as_native_obj=True,
 )
 def process_onedrive():
-    start = EmptyOperator(task_id='start')
+
+    # TODO: Start checking JDBC connection for OneDrive.
+    check_conn = EmptyOperator(task_id='check-connection')
 
     @task.branch
     def switch_file_format(**context):
         file_format: str = (
-            context["params"]["process"].get("fi", {}).get("file_format", 'xlsx')
+            context["params"]["process"].get("fi", {}).get("file_format")
+            or 'empty'
         )
         if file_format not in ('xlsx', 'csv', 'json', ):
             # NOTE: raise failed without retry
@@ -111,7 +114,7 @@ def process_onedrive():
     trigger_file_csv_task = trigger_file_csv()
     trigger_file_xlsx_task = trigger_file_xlsx()
 
-    start >> switch_file_format_task
+    check_conn >> switch_file_format_task
 
     switch_file_format_task >> Label('JSON') >> trigger_file_json_task
     switch_file_format_task >> Label('CSV') >> trigger_file_csv_task

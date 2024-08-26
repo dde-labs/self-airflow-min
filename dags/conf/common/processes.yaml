@@ -56,18 +56,24 @@ P_AD_ONEDRIVE_XLSX_01_D:
     conn_type: onedrive
   prcs_typ: 1
   prcs_load_type: "T"
+  fi:
+    file_format: xlsx
 
 P_AD_GCS_JSON_01_D:
   conn:
     conn_type: gcs
   prcs_typ: 1
   prcs_load_type: "F"
+  fi:
+    file_format: json
 
 P_AD_S3_CSV_01_D:
   conn:
     conn_type: s3
   prcs_typ: 1
   prcs_load_type: "D"
+  fi:
+    file_format: csv
 
 P_AD_API_PP_01_D:
   conn:
