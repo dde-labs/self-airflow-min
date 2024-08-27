@@ -7,9 +7,9 @@ from typing import Any
 from airflow.decorators import task
 from airflow.operators.python import get_current_context
 
-from plugins.models import Process
-from plugins.manual_process.process_file import process_file
-from plugins.manual_process.process_db import process_db
+from plugins_bk.models import Process
+from plugins_bk.manual_process.process_file import process_file
+from plugins_bk.manual_process.process_db import process_db
 
 
 TYPE_SUPPORTED: dict[int, callable] = {

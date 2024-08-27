@@ -1,7 +1,7 @@
 import traceback
 
-from plugins.operators.ms_teams_webhook import MSTeamsWebhookOperator
-from plugins.hooks.ms_teams_webhook import MSTeamsWebhookHook
+from plugins_bk.operators.ms_teams_webhook import MSTeamsWebhookOperator
+from plugins_bk.hooks.ms_teams_webhook import MSTeamsWebhookHook
 from airflow.operators.python import get_current_context
 
 

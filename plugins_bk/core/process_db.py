@@ -5,10 +5,10 @@ from airflow.decorators import task
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import get_current_context
 
-from plugins.models import Process
+from plugins_bk.models import Process
 
 
-def process_file(
+def process_db(
     process: Process,
 ):
     @task(
@@ -21,8 +21,8 @@ def process_file(
         logging.info(
             f"... Loading data from {process.source} to {process.target}"
         )
+
     return [
         EmptyOperator(task_id="start"),
         process_task.override(task_id='Main_Task')(),
-        EmptyOperator(task_id="end"),
     ]

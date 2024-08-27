@@ -1,11 +1,3 @@
-# Description of configuration.
-# ---
-# s_ad_d:
-#  tier: "Stream tier such as DMT, MDL, CURATED"
-#  stlmnt_dt: ""
-#  dpnd_stlmnt_dt: ""
-#  feq: ""
-#  data_frq: ""
 S_AD_D:
   tier: "CURATED"
   stlmt_dt: -1

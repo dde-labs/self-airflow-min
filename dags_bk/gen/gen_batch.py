@@ -12,7 +12,7 @@ from airflow.operators.empty import EmptyOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.utils.helpers import chain
 
-from plugins.utils.common import read_batch, read_deployment
+from plugins_bk.utils import read_batch, read_deployment
 
 
 current_dir: Path = Path(__file__).parent

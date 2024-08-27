@@ -4,7 +4,7 @@ from typing import Any, Optional
 import yaml
 from yaml import CSafeLoader
 
-from plugins.models import Stream, Batch, Deployment, Process
+from plugins_bk.models import Stream, Batch, Deployment, Process
 
 
 def read_deployment(file: str) -> Deployment:

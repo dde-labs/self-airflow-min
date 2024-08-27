@@ -1,11 +1,18 @@
 import logging
-from datetime import timedelta
+from pathlib import Path
+from datetime import timedelta, datetime
 from typing import Any
 
+import yaml
+from yaml import CSafeLoader
 import pendulum as pm
 from airflow.decorators import dag, task, task_group
+from airflow.configuration import AirflowConfigParser
 from airflow.models import Param
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.exceptions import AirflowFailException
+
+from plugins.utils.schemas import StreamConfData
 
 default_args = {
     "owner": "airflow",
@@ -37,21 +44,26 @@ default_args = {
 def s_ad_d():
 
     @task
-    def get_stream_config():
-        return {
-            "tier": "CURATED",
-            "stlmt_dt": -1,
-            "dpnd_stlmt_dt": -1,
-            "feq": "D",
-            "data_feq": "D",
-        }
+    def get_stream_config(**context):
+        conf: Path = Path(__file__).parent.parent / 'conf/common/streams.yaml'
+        with conf.open(mode='r', encoding='utf-8') as f:
+            data: dict = yaml.load(f, CSafeLoader)[context['dag_run'].dag_id]
+        try:
+            StreamConfData.model_validate(obj=data)
+        except Exception as err:
+            raise AirflowFailException(
+                f"Stream config data does not valid: {err}"
+            )
+        return data
 
     @task
-    def get_asat_date(config: dict[str, Any]):
+    def get_asat_date(data: dict[str, Any], **context) -> str:
         """Generate asat_date value that calculate from logic from stream
         setting"""
-        logging.info(config)
-        return str(pm.now(tz='Asia/Bangkok') - timedelta(days=1))
+        conf: AirflowConfigParser = context['conf']
+        core_tz: str = conf.get("core", "default_timezone")
+        stream = StreamConfData.model_validate(obj=data)
+        return str(stream.get_asat_dt(pm.now(tz=core_tz)))
 
     @task_group(group_id='PG_AD_FILE_GROUPS')
     def group_files():
@@ -99,6 +111,20 @@ def s_ad_d():
 
         [onedrive_xlsx_01, onedrive_csv_01] >> onedrive_json_01
 
+    api_01 = TriggerDagRunOperator(
+        task_id='P_AD_API_01_D',
+        trigger_dag_id='10_PROCESS_COMMON',
+        trigger_run_id="{{ run_id }}_P_AD_API_01_D",
+        wait_for_completion=True,
+        deferrable=False,
+        reset_dag_run=True,
+        conf={
+            "process_name": "P_AD_API_01_D",
+            "asat_dt": "{{ task_instance.xcom_pull('get_asat_date') }}",
+            "mode": "{{ params['mode'] }}",
+        },
+    )
+
     gbq_table_01 = TriggerDagRunOperator(
         task_id='P_AD_GBQ_TABLE_01_D',
         trigger_dag_id='10_PROCESS_COMMON',
@@ -114,7 +140,7 @@ def s_ad_d():
     )
 
     get_asat_date_task = get_asat_date(get_stream_config())
-    get_asat_date_task >> group_files() >> gbq_table_01
+    get_asat_date_task >> group_files() >> api_01 >> gbq_table_01
 
 
 s_ad_d()

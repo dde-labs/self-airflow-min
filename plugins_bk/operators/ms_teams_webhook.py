@@ -22,7 +22,7 @@ from functools import cached_property
 
 from airflow.providers.http.operators.http import HttpOperator
 
-from plugins.hooks.ms_teams_webhook import MSTeamsWebhookHook
+from plugins_bk.hooks.ms_teams_webhook import MSTeamsWebhookHook
 
 
 class MSTeamsWebhookOperator(HttpOperator):

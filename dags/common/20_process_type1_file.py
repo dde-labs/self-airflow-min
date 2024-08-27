@@ -62,7 +62,7 @@ def process_type01_file():
         file_conn_type: str = (
             (
                 context["params"].get("process", {}).get("conn", {})
-                .get("conn_type")
+                .get("service")
             ) or 'empty'
         )
         if file_conn_type not in ('onedrive', 'gcs', 's3', ):
@@ -119,6 +119,7 @@ def process_type01_file():
         trigger_dag_id="30_STG_TO_CURATED",
         trigger_run_id="{{ run_id }}",
         wait_for_completion=True,
+        trigger_rule='none_failed_min_one_success',
         deferrable=False,
         reset_dag_run=True,
         conf={

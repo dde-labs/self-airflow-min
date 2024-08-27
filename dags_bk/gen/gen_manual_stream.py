@@ -11,9 +11,9 @@ from airflow.operators.empty import EmptyOperator
 from airflow.utils.helpers import chain
 
 from dags_bk.gen.gen_manual_process import gen_process
-from plugins.utils.sla import sla_callback
-from plugins.utils.common import read_stream, read_deployment
-from plugins.models import Process
+from plugins_bk.utils import sla_callback
+from plugins_bk.utils import read_stream, read_deployment
+from plugins_bk.models import Process
 
 
 current_dir: Path = Path(__file__).parent

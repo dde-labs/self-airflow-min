@@ -2,9 +2,9 @@ from typing import Union, Any
 
 from airflow.models import TaskInstance
 
-from plugins.core.process_file import process_file
-from plugins.core.process_db import process_db
-from plugins.models import Process
+from plugins_bk.core.process_file import process_file
+from plugins_bk.core.process_db import process_db
+from plugins_bk.models import Process
 
 
 TYPE_SUPPORTED: dict[int, Any] = {

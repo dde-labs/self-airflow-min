@@ -81,15 +81,6 @@ default_args = {
 def process_common():
 
     @task
-    def get_run_id(**context):
-        logger.info(str(context))
-        dag_run = context['dag_run']
-        logger.info(f"{type(dag_run)}: {dag_run}")
-        run_id: str = dag_run.run_id
-        logger.info(run_id)
-        return run_id
-
-    @task
     def loading_process_conf(**context) -> dict[str, Any]:
         """Loading process config from `.yaml` file."""
         conf: Path = Path(__file__).parent.parent / 'conf/common/processes.yaml'
@@ -101,18 +92,13 @@ def process_common():
         return data
 
     @task.branch
-    def switch_process_load_type(config: dict):
-        process_type: int = config.get('prcs_typ') or 99
+    def switch_process_load_type(data: dict):
+        process_type: int = data.get('prcs_typ') or 99
         if process_type not in (1, 2, 3, ):
             return ['trigger-default']
         return [f'trigger-process-{process_type}']
 
-    get_run_id_task = get_run_id()
-    loading_conf_task = loading_process_conf()
-
-    get_run_id_task >> loading_conf_task
-
-    switch_process_load_task = switch_process_load_type(loading_conf_task)
+    switch_process_load_task = switch_process_load_type(loading_process_conf())
 
     end = EmptyOperator(
         task_id="end",

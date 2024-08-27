@@ -1,86 +1,46 @@
-# Description of configuration.
-# ---
-# p_ad_process_file_d_99:
-#  conn:
-#    conn_id: "Connection ID that already create at Airflow connection table."
-#    conn_type: "Connection type such as onedrive, gbq, s3, sftp, api"
-#  fi:
-#    fi_pth: "File path"
-#    fi_nm: "Dynamic file name"
-#    file_format: "File format such as xlsx, csv, parquet, etc."
-#    cntl_fi_nm: "Control record file name"
-#    hdr_f: "File header flag"
-#    dlm_strng: "File delimiter"
-#    quote_chr: "File quite character"
-#    escp_chr: "File escape character"
-#    encdng: "File encoding such as UTF-8, WINDOW-874"
-#    chk_nul_cols: "Checking nullable columns"
-#    chk_pk_cols: "Checking primary key columns"
-#    schm_fi: "Schema mapping file name"
-#    sht_nm: "File Sheet name"
-#    m_f: true
-#  sys:
-#    sys_name: "Source system name"
-#    cntnr: ""
-#    pth: ""
-#  src_schm_nm: "Source schema name"
-#  src_tbl: "Source table name"
-#  bus_date_field: "Business Date column"
-#  chk_pk_cols: "Primary key columns"
-#  cus_qry: "Custom query statement"
-#  tgt_sys:
-#    sys_name: "Target system name"
-#    cntnr: ""
-#    pth: ""
-#  tgt_schm_nm: ""
-#  tgt_tbl: "Target table name"
-#  tgt_conn:
-#    conn_id: "Connection ID that already create at Airflow connection table."
-#    conn_type: "Connection type such as onedrive, gbq, s3, sftp, api"
-#  prcs_typ: "Process type"
-#  prcs_load_typ: "Process loading type"
-#  dist_typ: ""
-#  tbl_strctr_opt: ""
-#  hash_col: ""
-#  skip_chk_f: true
-#  adb_nm: ""
-#  adb_parm: ""
-#  byps_f: true
-#  updt_dttm: ""
-#  updt_by: ""
-#  extras:
-#    lcm_archive: true
-#    recv_email: "user@email.com"
 P_AD_ONEDRIVE_XLSX_01_D:
   conn:
-    conn_type: onedrive
+    conn_id: onedrive_pp_conn_id
+    service: onedrive
   prcs_typ: 1
-  prcs_load_type: "T"
+  prcs_load_typ: "T"
   fi:
+    fi_pth: "pp/table01"
+    fi_nm: "file.json"
     file_format: xlsx
 
 P_AD_GCS_JSON_01_D:
   conn:
-    conn_type: gcs
+    conn_id: gcs_pp_conn_id
+    service: gcs
   prcs_typ: 1
-  prcs_load_type: "F"
+  prcs_load_typ: "F"
   fi:
+    fi_pth: "pp/table01"
+    fi_nm: "file.json"
     file_format: json
 
 P_AD_S3_CSV_01_D:
   conn:
-    conn_type: s3
+    conn_id: s3_pp_conn_id
+    service: s3
   prcs_typ: 1
-  prcs_load_type: "D"
+  prcs_load_typ: "D"
   fi:
+    fi_pth: "pp/table01"
+    fi_nm: "file.json"
     file_format: csv
 
-P_AD_API_PP_01_D:
+P_AD_API_01_D:
   conn:
-    conn_type: api
-  prcs_typ: 1
-  prcs_load_type: "D"
+    conn_id: api_pp_conn_id
+    service: api
+  prcs_typ: 2
+  prcs_load_typ: "D"
 
 P_AD_GBQ_TABLE_01_D:
+  conn:
+    conn_id: gbq_pp_conn_id
+    service: gbq
   prcs_typ: 3
-  prcs_load_type: "T"
+  prcs_load_typ: "T"

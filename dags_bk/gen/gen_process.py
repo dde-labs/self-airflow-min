@@ -8,8 +8,8 @@ from airflow.decorators import dag
 from airflow.models import Param
 from airflow.utils.helpers import chain
 
-from plugins.core.gateway import process_gateway
-from plugins.utils.common import read_process, read_deployment
+from plugins_bk.core.gateway import process_gateway
+from plugins_bk.utils import read_process, read_deployment
 
 
 current_dir: Path = Path(__file__).parent
