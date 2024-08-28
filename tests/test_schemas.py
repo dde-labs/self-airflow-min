@@ -1,4 +1,4 @@
-from plugins.utils.schemas import ProcessConfData, StreamConfData
+from plugins.metadata.schemas import ProcessConfData, StreamConfData
 
 
 def test_schemas_process_conf_data():

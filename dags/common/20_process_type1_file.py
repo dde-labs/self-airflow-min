@@ -114,20 +114,6 @@ def process_type01_file():
         },
     )
 
-    staging_to_curated = TriggerDagRunOperator(
-        task_id='staging-to-curated',
-        trigger_dag_id="30_STG_TO_CURATED",
-        trigger_run_id="{{ run_id }}",
-        wait_for_completion=True,
-        trigger_rule='none_failed_min_one_success',
-        deferrable=False,
-        reset_dag_run=True,
-        conf={
-            "process": "{{ params['process'] }}",
-            "asat_dt": "{{ params['asat_dt'] }}",
-        },
-    )
-
     switch_file_format_task = switch_file_connection()
 
     start >> switch_file_format_task
@@ -135,12 +121,6 @@ def process_type01_file():
     switch_file_format_task >> Label('ONE DRIVE') >> trigger_onedrive
     switch_file_format_task >> Label('GCS') >> trigger_gcs
     switch_file_format_task >> Label('AWS S3') >> trigger_s3
-
-    [
-        trigger_onedrive,
-        trigger_gcs,
-        trigger_s3,
-    ] >> staging_to_curated
 
 
 process_type01_file()

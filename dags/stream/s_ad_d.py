@@ -1,6 +1,5 @@
-import logging
 from pathlib import Path
-from datetime import timedelta, datetime
+from datetime import timedelta
 from typing import Any
 
 import yaml
@@ -10,9 +9,10 @@ from airflow.decorators import dag, task, task_group
 from airflow.configuration import AirflowConfigParser
 from airflow.models import Param
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.operators.empty import EmptyOperator
 from airflow.exceptions import AirflowFailException
 
-from plugins.utils.schemas import StreamConfData
+from plugins.metadata.schemas import StreamConfData
 
 default_args = {
     "owner": "airflow",
@@ -141,6 +141,10 @@ def s_ad_d():
 
     get_asat_date_task = get_asat_date(get_stream_config())
     get_asat_date_task >> group_files() >> api_01 >> gbq_table_01
+
+    write_log_task = EmptyOperator(task_id="write_stream_log")
+
+    gbq_table_01 >> write_log_task
 
 
 s_ad_d()

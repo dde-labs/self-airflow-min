@@ -11,7 +11,10 @@ from airflow.models import Param
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.utils.edgemodifier import Label
+from airflow.exceptions import AirflowFailException
 # from airflow.utils.email import send_email
+
+from plugins.metadata.schemas import ProcessConfData
 
 
 logger = logging.getLogger("airflow.task")
@@ -51,7 +54,7 @@ default_args = {
     schedule=None,
     catchup=False,
     # NOTE: UI params
-    description="Common DAG for process",
+    description="Common Process DAG",
     tags=["process", "common"],
     # NOTE: Other params
     params={
@@ -89,10 +92,17 @@ def process_common():
                 yaml.load(f, CSafeLoader)[context['params']['process_name']]
             )
         logging.info(data)
+        try:
+            ProcessConfData.model_validate(obj=data)
+        except Exception as err:
+            raise AirflowFailException(
+                f"Process config data does not valid: {err}"
+            )
         return data
 
     @task.branch
-    def switch_process_load_type(data: dict):
+    def switch_process_load_type(data: dict[str, Any]):
+        """Switch process for an incoming process loading type."""
         process_type: int = data.get('prcs_typ') or 99
         if process_type not in (1, 2, 3, ):
             return ['trigger-default']
@@ -100,9 +110,9 @@ def process_common():
 
     switch_process_load_task = switch_process_load_type(loading_process_conf())
 
-    end = EmptyOperator(
-        task_id="end",
-        trigger_rule="none_failed_min_one_success"
+    write_log_task = EmptyOperator(
+        task_id="write_process_log",
+        trigger_rule="none_failed_min_one_success",
     )
 
     for dag_id in (1, 2, 3, 99, ):
@@ -127,7 +137,7 @@ def process_common():
                 },
             )
 
-        switch_process_load_task >> Label(t_label) >> t >> end
+        switch_process_load_task >> Label(t_label) >> t >> write_log_task
 
 
 process_common()

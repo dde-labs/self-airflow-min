@@ -6,6 +6,7 @@ from airflow.decorators import dag, task
 from airflow.models import Param
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import get_current_context
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 
 default_args = {
@@ -46,6 +47,7 @@ default_args = {
         ),
     },
     default_args=default_args,
+    render_template_as_native_obj=True,
 )
 def process_api():
     start = EmptyOperator(task_id='start')
@@ -59,6 +61,21 @@ def process_api():
     prepare_api = EmptyOperator(task_id='prepare-api')
 
     start >> extract_api() >> prepare_api
+
+    staging_to_curated = TriggerDagRunOperator(
+        task_id='staging-to-curated',
+        trigger_dag_id="30_STG_TO_CURATED",
+        trigger_run_id="{{ run_id }}",
+        wait_for_completion=True,
+        deferrable=False,
+        reset_dag_run=True,
+        conf={
+            "process": "{{ params['process'] }}",
+            "asat_dt": "{{ params['asat_dt'] }}",
+        },
+    )
+
+    prepare_api >> staging_to_curated
 
 
 process_api()
