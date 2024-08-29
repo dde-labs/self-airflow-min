@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal, Optional, Self
 
 from dateutil import relativedelta
 from pydantic import BaseModel, Field
@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 FreqLiteral = Literal["D", "W", "M", "Q", "Y"]
 TierLiteral = Literal["CURATED", "MDL", "DMT"]
 LoadTypeLiteral = Literal["F", "T", "D", "I", "SCD_D", "SCD_F", "SCD_T"]
+FileFormatLiteral = Literal["csv", "json", "parquet", "xlsx"]
 
 FreqMapping: dict[str, str] = {
     "D": "days",
@@ -18,13 +19,19 @@ FreqMapping: dict[str, str] = {
 }
 
 
+
 class StreamConfData(BaseModel):
     """Stream Config Data Model"""
+    name: Optional[str] = Field(default=None, description="Stream name")
     tier: TierLiteral = Field(description="Tier of this stream")
     stlmt_dt: int = Field(description='Settlement Date')
     dpnd_stlmt_dt: int = Field(description='Dependency Settlement Date')
     feq: FreqLiteral = Field(description='Running Frequency')
     data_feq: FreqLiteral = Field(description='Data Frequency')
+
+    def set_name(self, name: str) -> Self:
+        self.__dict__['name']: str = name
+        return self
 
     def get_asat_dt(self, start_date: datetime) -> datetime:
         """Return ``asat_dt`` value that use for running datetime."""
@@ -62,9 +69,15 @@ class ExtraConfData(BaseModel):
 
 class FileConfData(BaseModel):
     """File Config Data Model."""
-    fi_pth: str = Field(description='File Path')
-    fi_nm: str = Field(description='File Name')
-    file_format: str = Field(description='File Format')
+    fi_pth: str = Field(
+        description='File path',
+    )
+    fi_nm: str = Field(
+        description='File name',
+    )
+    file_format: FileFormatLiteral = Field(
+        description='File format',
+    )
 
     cntl_fi_nm: Optional[str] = Field(
         default=None, description='Control File Name'
@@ -95,6 +108,9 @@ class FileConfData(BaseModel):
         description='Sheet Name for the Excel file format',
     )
     m_f: bool = Field(default=True, description='Mandatory Flag')
+
+    def get_formatted_path(self, asat_dt: datetime) -> str:
+        return asat_dt.strftime(f"{self.fi_pth}/{self.fi_nm}")
 
 
 class ProcessConfData(BaseModel):

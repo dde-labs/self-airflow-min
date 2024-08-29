@@ -14,7 +14,7 @@ from airflow.utils.edgemodifier import Label
 from airflow.exceptions import AirflowFailException
 # from airflow.utils.email import send_email
 
-from plugins.metadata.schemas import ProcessConfData
+from plugins.metadata.conf import ProcessConfData
 
 
 logger = logging.getLogger("airflow.task")
