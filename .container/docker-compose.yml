@@ -1,22 +1,23 @@
 x-airflow-common:
   &airflow-common
-#  image: app-airflow:latest
+  image: airflow-data360
   build:
     context: ..
     dockerfile: ./.container/Dockerfile
   environment:
     &airflow-common-env
     AIRFLOW_CONFIG: '/opt/airflow/airflow.cfg'
+    AIRFLOW__CORE_DEFAULT_TIMEZONE: ${AIRFLOW_CORE_DEFAULT_TIMEZONE:-}
     AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_WEBSERVER_SECRET_KEY:-}
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW_DB_CONN:-}
     AIRFLOW_CONN_MSSQL_DEFAULT: ${MSSQL_AIRFLOW_CONN:-}
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/tests:/opt/airflow/tests
-    - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/data
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
-    - ${AIRFLOW_PROJ_DIR:-.}/secrets:/opt/secrets
+#    - ${AIRFLOW_PROJ_DIR:-.}/secrets:/opt/airflow/secrets
+#    - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/data
     - ${AIRFLOW_PROJ_DIR:-.}/airflow.cfg:/opt/airflow/airflow.cfg
   networks:
     - airflow
@@ -97,13 +98,13 @@ services:
           echo "    See: https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#setting-the-right-airflow-user"
           echo
         fi
-        
+
         one_meg=1048576
         mem_available=$$(($$(getconf _PHYS_PAGES) * $$(getconf PAGE_SIZE) / one_meg))
         cpus_available=$$(grep -cE 'cpu[0-9]+' /proc/stat)
         disk_available=$$(df / | tail -1 | awk '{print $$4}')
         warning_resources="false"
-        
+
         if (( mem_available < 4000 )) ; then
           echo
           echo -e "\033[1;33mWARNING!!!: Not enough memory available for Docker.\e[0m"
@@ -132,9 +133,9 @@ services:
           echo "   https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#before-you-begin"
           echo
         fi
-        
+
         mkdir -p /sources/logs /sources/dags /sources/plugins
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
+        chown -R "${AIRFLOW_UID}:${AIRFLOW_GID}" /sources/{logs,dags,plugins}
         exec /entrypoint airflow version
     environment:
       <<: *airflow-common-env
@@ -150,4 +151,3 @@ services:
 networks:
   airflow:
     name: airflow
-#    external: true
