@@ -58,6 +58,48 @@ docker compose -f ./.container/docker-compose.yml --env-file .env up -d
 
 On the `mssql`, you can access this database with `sa` user.
 
+## Project Structure
+
+This project will design with less-dependency import structure and use scalable
+strategy design.
+
+```text
+- /dags
+    - /common
+        - <common-process-dag>.py
+        - ...
+    - /conf
+        - <config-template>.yaml
+        - ...
+    - /opt
+        - <operation-dag>.py
+        - ...
+    - <manual-stream-dag>.py
+    - ...
+    - .airflowignore
+- /logs
+    - /airflow
+        - ...
+    - /internal
+        - watermark.sqlite
+        - logging.sqlite
+- /plugins
+    - /metadata
+        - models.py
+        - schemas.py
+        - services.py
+    - /operators
+        - trigger.py
+    - callback.py
+    - db.py
+    - utils.py
+- /tests
+- .env
+- airflow.cfg
+- packages.txt
+- requirements.txt
+```
+
 ## Getting Started
 
 ### Process Template

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 from datetime import timedelta
 
@@ -7,14 +9,14 @@ from airflow.models import Param
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import get_current_context
 
+from plugins.callback import process_failure_callback
 
 default_args = {
     "owner": "airflow",
     "depends_on_past": False,
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 1,
-    "retry_delay": timedelta(minutes=5),
+    "on_failure_callback": process_failure_callback,
 }
 
 
@@ -38,7 +40,7 @@ default_args = {
             ),
         ),
         "asat_dt": Param(
-            default=str(pm.now(tz='Asia/Bangkok') - timedelta(days=1)),
+            default=str(pm.now(tz="Asia/Bangkok") - timedelta(days=1)),
             type="string",
             format="date-time",
             section="Important Params",
@@ -48,7 +50,7 @@ default_args = {
     default_args=default_args,
 )
 def process_gbq():
-    start = EmptyOperator(task_id='start')
+    start = EmptyOperator(task_id="start")
 
     @task()
     def extract_gbq():
@@ -56,7 +58,23 @@ def process_gbq():
         logging.info(context["params"])
         logging.info(context["ds"])
 
-    start >> extract_gbq()
+    @task(task_id="transform")
+    def execute_transform():
+        return
+
+    @task(task_id="return_result")
+    def prepare_result_for_parent_dag():
+        return {
+            "cnt_rec_src": 30000,
+            "cnt_rec_tgt": 30000,
+        }
+
+    (
+        start
+        >> extract_gbq()
+        >> execute_transform()
+        >> prepare_result_for_parent_dag()
+    )
 
 
 process_gbq()

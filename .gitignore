@@ -167,3 +167,4 @@ mnt/
 # Airflow Dir
 logs/
 secrets/
+*.sqlite
